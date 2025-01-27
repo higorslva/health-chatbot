@@ -73,26 +73,20 @@ qdrant = verificar_ou_criar_colecao(client, collection_name, documents)
 def buscar_similaridade(query, k=3):
     print("-- Buscando similaridade")
     try:
-        query_embedding = embed_model.get_text_embedding(query)
-        search_results = client.search(
-        collection_name=collection_name,
-        query_vector=query_embedding,
-        limit=3,  # Retorna os 3 mais similares
-    )
-    # Extrai o conhecimento das fontes retornadas
-        source_knowledge = "\n".join([results._node_content for results in search_results])
-
-        # Construir o contexto a partir dos pontos filtrados
-        #source_knowledge = "\n".join([x.page_content for x in results])
-
-        # Criar o prompt com o contexto gerado
+        query_engine = qdrant.as_query_engine(similarity_top_k=k)
+        response = query_engine.query(query)
+        source_knowledge = "\n".join([node.node.text for node in response.source_nodes])
         prompt = f"""Você é uma assistente virtual de uma clínica médica. Seu papel é orientar os pacientes a, com base na conclusão de seus exames,
         a qual profissional procurar com base na base de dados disponível.
-
-        Use o contexto abaixo para responder à pergunta com base nos dados disponíveis:
+        
+        Contexto:
         {source_knowledge}
         Pergunta: {query}"""
-
+        return prompt
+    except Exception as e:
+        print(f"Erro na busca por similaridade: {e}")
+        raise
+    
         return prompt
     except Exception as e:
         # Logar o erro completo
@@ -122,7 +116,7 @@ def processar_pergunta():
 
         # Mensagens para o chat GPT
         messages = [
-            ChatMessage(role="system", content="Você é um assistente jurídico."),
+            ChatMessage(role="system", content="Você é uma assistente virtual de uma clínica médica. Seu papel é orientar os pacientes a, com base na conclusão de seus exames, a qual profissional procurar com base na base de dados disponível."),
             ChatMessage(role="user", content=pergunta),
             ChatMessage(role="assistant", content=prompt)
         ]
