@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot de Assistência Médica</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-box" id="chat-box">
+            <!-- As mensagens do chatbot aparecerão aqui -->
+        </div>
+
+        <div class="chat-input">
+            <input type="text" id="pergunta" placeholder="Digite sua pergunta...">
+            <button id="enviar">Enviar</button>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#enviar').on('click', function () {
+                var pergunta = $('#pergunta').val().trim();
+                if (pergunta === '') {
+                    alert('Por favor, digite uma pergunta.');
+                    return;
+                }
+
+                // Adiciona a pergunta do usuário no chat
+                $('#chat-box').append('<div class="message user-message">Você: ' + pergunta + '</div>');
+
+                // Limpa o campo de entrada de texto
+                $('#pergunta').val('');
+
+                // Envia a pergunta para o servidor
+                $.ajax({
+                    type: 'POST',
+                    url: '/pergunta',  // Rota do Flask para processar a pergunta
+                    data: {
+                        pergunta: pergunta,
+                        id: '12345'  // Exemplo de ID da conversa
+                    },
+                    success: function (response) {
+                        // Exibe a resposta do bot no chat
+                        $('#chat-box').append('<div class="message bot-message">Bot: ' + response.resposta + '</div>');
+                        $('#chat-box').scrollTop($('#chat-box')[0].scrollHeight);  // Rola para a última mensagem
+                    },
+                    error: function (error) {
+                        // Exibe um erro se a requisição falhar
+                        $('#chat-box').append('<div class="message bot-message">Erro: Não consegui processar sua pergunta.</div>');
+                    }
+                });
+            });
+
+            // Permite enviar a pergunta ao pressionar Enter
+            $('#pergunta').on('keypress', function (e) {
+                if (e.which === 13) {
+                    $('#enviar').click();
+                }
+            });
+        });
+    </script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .chat-container {
+        width: 80%;
+        max-width: 600px;
+        margin: 50px auto;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .chat-box {
+        padding: 20px;
+        height: 400px;
+        overflow-y: auto;
+        border-bottom: 1px solid #ddd;
+        background-color: #f9f9f9;
+    }
+    
+    .message {
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 10px;
+        max-width: 80%;
+    }
+    
+    .user-message {
+        background-color: #e0e0e0;
+        align-self: flex-end;
+    }
+    
+    .bot-message {
+        background-color: #d1e7ff;
+    }
+    
+    .chat-input {
+        display: flex;
+        padding: 10px;
+        background-color: #f1f1f1;
+    }
+    
+    .chat-input input {
+        width: 80%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+    
+    .chat-input button {
+        width: 15%;
+        padding: 10px;
+        margin-left: 10px;
+        background-color: #007BFF;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    
+    .chat-input button:hover {
+        background-color: #0056b3;
+    }
+    
+    </style>
+</body>
+</html>
