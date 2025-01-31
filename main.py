@@ -65,7 +65,7 @@ def verificar_ou_criar_colecao(client, collection_name, documents):
         
         # Cria o índice e armazena os documentos na nova coleção
         # Indexando os documentos na nova coleção
-        vector_store.add_documents(documents)  # Adicionando os documentos carregados
+        # vector_store.add_documents(documents)  # Adicionando os documentos carregados
         return VectorStoreIndex.from_documents(documents, storage_context=storage_context)
 
 qdrant = verificar_ou_criar_colecao(client, collection_name, documents)
