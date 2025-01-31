@@ -1,107 +1,100 @@
-from flask import Flask, request, jsonify, render_template
-from llama_index.core import (
-    VectorStoreIndex,
-    SimpleDirectoryReader,
-    StorageContext,
-    load_index_from_storage,
-    Settings,
-)
-from llama_index.llms.openai import OpenAI
-from llama_index.embeddings.openai import OpenAIEmbedding
-from llama_index.core.llms import ChatMessage
-from langchain_community.vectorstores import Qdrant
-import qdrant_client
-from qdrant_client import QdrantClient
-from llama_index.vector_stores.qdrant import QdrantVectorStore
-from dotenv import load_dotenv
-from langchain.document_loaders import DataFrameLoader
-import markdown
-import traceback
-from types import GeneratorType
-from qdrant_client.http.exceptions import UnexpectedResponse 
 import os
 import json
-from dotenv import load_dotenv
+import markdown
+import traceback
 
-# Carregar variáveis de ambiente
+import qdrant_client
+from qdrant_client import QdrantClient
+from qdrant_client.http.exceptions import UnexpectedResponse 
+from langchain_qdrant import QdrantVectorStore
+
+from langchain.schema import SystemMessage, HumanMessage, AIMessage
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_community.vectorstores import Qdrant
+from langchain.document_loaders import DataFrameLoader
+
+from datasets import load_dataset
+from flask import Flask, request, jsonify, render_template
+from dotenv import load_dotenv
+import traceback #Pra debugar
+
 load_dotenv()
 
+URL_QDRANT = 'localhost'
+PORT_QDRANT = 6333
+COLLECTION_NAME = "health"
 
 load_dotenv('.env')
 client = QdrantClient(host='localhost', port=6333)
 app = Flask(__name__)
 collection_name = "health"
 
-print('Inicializando modelos e carregando dados...')
-Settings.embed_model = OpenAIEmbedding(
-    model="text-embedding-3-small"
-)
-Settings.llm = OpenAI(model="gpt-4o-mini", temperature=0.1)
+print('Carregando modelo de embeddings...')
+embed_model = OpenAIEmbeddings(model="text-embedding-3-small")
 
-embed_model = Settings.embed_model
-chat = Settings.llm
+print('Carregando modelo de chat...')
+chat = ChatOpenAI(model='gpt-4o-mini', temperature=0)
 
 print("-- Configurando coleção")
-documents = SimpleDirectoryReader("data").load_data()
+print('Carregando dataset...')
+dataset = load_dataset("json", data_dir="data", split="train")
+data = dataset.to_pandas()
 
-def verificar_ou_criar_colecao(client, collection_name, documents):
-    try:
-        # Verifica se a coleção já existe
-        client.get_collection(collection_name)
-        print(f"A coleção '{collection_name}' já existe. Reutilizando-a.")
-        
-        # Reutiliza o storage_context da coleção existente
-        vector_store = QdrantVectorStore(client=client, collection_name=collection_name)
-        storage_context = StorageContext.from_defaults(vector_store=vector_store)
-        
-        # Cria o índice a partir do storage_context existente
-        return VectorStoreIndex.from_vector_store(vector_store=vector_store)
+data['identificador'] = data['identificador'].astype(str)
+data['anamnese'] = data['anamnese'].astype(str)
+data['laudo'] = data['laudo'].astype(str)
 
-    except UnexpectedResponse:
-        # Se a coleção não existir, cria uma nova
-        print(f"A coleção '{collection_name}' não foi encontrada. Criando uma nova.")
-        vector_store = QdrantVectorStore(client=client, collection_name=collection_name)
-        storage_context = StorageContext.from_defaults(vector_store=vector_store)
-        
-        # Cria o índice e armazena os documentos na nova coleção
-        # Indexando os documentos na nova coleção
-        # vector_store.add_documents(documents)  # Adicionando os documentos carregados
-        return VectorStoreIndex.from_documents(documents, storage_context=storage_context)
+docs = data[['identificador', 'anamnese', 'laudo']]
+loader = DataFrameLoader(docs, page_content_column="anamnese")
 
-qdrant = verificar_ou_criar_colecao(client, collection_name, documents)
+documents = loader.load()
+print('Inicializando QDrant')
+try:
+    client.get_collection(COLLECTION_NAME)
+    print(f"A coleção '{COLLECTION_NAME}' já existe. Reutilizando...")
+    collection_exists = True
+except Exception as e:
+    print(f"A coleção '{COLLECTION_NAME}' não existe. Criando...")
+    collection_exists = False
+    
+if not collection_exists:
+    qdrant = Qdrant.from_documents(
+        documents=documents,
+        embedding=embed_model,
+        collection_name=COLLECTION_NAME,
+        url=f"http://{URL_QDRANT}:{PORT_QDRANT}",
+    )
+else:
+    qdrant = QdrantVectorStore.from_existing_collection(
+        embedding=embed_model,
+        #documents=documents,
+        collection_name=COLLECTION_NAME,
+        url=f"http://{URL_QDRANT}:{PORT_QDRANT}",
+)
 
-def buscar_similaridade(query, k=3):
+def buscar_similaridade(query, k=9):
     print("-- Buscando similaridade")
     try:
-        query_engine = qdrant.as_query_engine(similarity_top_k=k)
-        response = query_engine.query(query)
-        source_knowledge = "\n".join([node.node.text for node in response.source_nodes])
-        prompt = f"""Você é uma assistente virtual de uma clínica médica. Seu papel é orientar os pacientes a, com base na conclusão de seus exames,
+        results = qdrant.similarity_search(query, k=9)
+        source_knowledge = "\n".join([x.page_content for x in results])
+        prompt = f"""Você é uma assistente virtual de uma clínica médica. Seu papel é orientar os pacientes a, com base no laudo de seus exames,
         a qual profissional procurar com base na base de dados disponível.
         
         Contexto:
         {source_knowledge}
         Pergunta: {query}"""
         return prompt
+
     except Exception as e:
-        print(f"Erro na busca por similaridade: {e}")
-        raise
-    
-        return prompt
-    except Exception as e:
-        # Logar o erro completo
-        error_message = f"Erro ao buscar similaridade: {str(e)}\n{traceback.format_exc()}"
+        error_message = f"Erro ao buscar similaridade: {str(e)}\n{traceback.format_exc()}" #Debug
         print(error_message)
         raise
 
 
 @app.route('/')
 def home():
-    return render_template('index.html')  # Servirá o arquivo index.html
+    return render_template('index.html')  
 
-# Função para buscar os documentos mais relevantes no Qdrant
-
-# Função para gerar resposta usando a API do GPT
 @app.route('/pergunta', methods=['POST'])
 def processar_pergunta():
     pergunta = request.form.get('pergunta', '').strip()
@@ -110,38 +103,24 @@ def processar_pergunta():
         return jsonify({"erro": "Pergunta é obrigatória"}), 400
 
     try:
-        # Busca pela similaridade (essa função é onde você define o comportamento de busca de dados)
         prompt = buscar_similaridade(pergunta)
-        print(f"Pergunta: {pergunta}")
-
-        # Mensagens para o chat GPT
-        messages = [
-            ChatMessage(role="system", content="Você é uma assistente virtual de uma clínica médica. Seu papel é orientar os pacientes a, com base na conclusão de seus exames, a qual profissional procurar com base na base de dados disponível."),
-            ChatMessage(role="user", content=pergunta),
-            ChatMessage(role="assistant", content=prompt)
-        ]
-
-        # Obtendo a resposta em formato de streaming
-        raw_response = chat.stream_chat(messages)
-
-        # Capturar apenas a última mensagem gerada
-        ultima_resposta = ""
+        resposta = chat.invoke(prompt).content
+        return jsonify({"resposta": markdown.markdown(resposta)})
         for item in raw_response:
             if hasattr(item, 'content'):
                 ultima_resposta = item.content
             else:
                 ultima_resposta = str(item)
-        
-        # Remover o prefixo "assistant: " se estiver presente
+
         if ultima_resposta.startswith("assistant: "):
             ultima_resposta = ultima_resposta[len("assistant: "):]
-            
+
         respostafinal = markdown.markdown(ultima_resposta)
 
         return jsonify({"resposta": respostafinal})
+
     except Exception as e:
-        # Logando o erro completo
-        error_message = f"Erro ao processar a pergunta: {str(e)}\n{traceback.format_exc()}"
+        error_message = f"Erro ao processar a pergunta: {str(e)}\n{traceback.format_exc()}" #Debug
         print(error_message)
         return jsonify({"erro": error_message}), 500
 
