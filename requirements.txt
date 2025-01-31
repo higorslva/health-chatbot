@@ -2,10 +2,7 @@ openai
 langchain 
 langchain_openai 
 langchain-community
-llama-index 
-llama-index-llms-ollama
-llama-index-embeddings-ollama
-llama-index-vector-stores-qdrant
+langchain_qdrant
 python-dotenv 
 datasets 
 qdrant-client 
