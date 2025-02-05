@@ -2,102 +2,70 @@ import os
 import json
 import markdown
 import traceback
-import re  #expressões regulares
-
-import qdrant_client
-from qdrant_client import QdrantClient
-from qdrant_client.http.exceptions import UnexpectedResponse
-from langchain_qdrant import QdrantVectorStore
+import re  # expressões regulares
 
 from langchain.schema import SystemMessage, HumanMessage, AIMessage
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain_community.vectorstores import Qdrant
-from langchain.document_loaders import DataFrameLoader
-
-from datasets import load_dataset
+from langchain_openai import ChatOpenAI
 from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
-import traceback #Pra debugar
+import pandas as pd
+import traceback
 
+# Carregar variáveis de ambiente
 load_dotenv()
 
-URL_QDRANT = 'localhost'
-PORT_QDRANT = 6333
-COLLECTION_NAME = "health"
+# Configurações
+CSV_DIR = "csv"  # Pasta contendo os arquivos CSV
 
-load_dotenv('.env')
-client = QdrantClient(host='localhost', port=6333)
+# Inicializar o Flask
 app = Flask(__name__)
 
-print('Carregando modelo de embeddings...')
-embed_model = OpenAIEmbeddings(model="text-embedding-3-small")
-
+# Carregar modelo de chat
 print('Carregando modelo de chat...')
-chat = ChatOpenAI(model='gpt-4o-mini', temperature=0)
-# Carregar dataset
-print("-- Configurando coleção")
+chat = ChatOpenAI(model='gpt-4', temperature=0)  # Atualize para o modelo desejado
+
+# Função para carregar todos os CSVs da pasta
+def carregar_dados_csv(pasta):
+    dados = []
+    for arquivo in os.listdir(pasta):
+        if arquivo.endswith(".csv"):
+            caminho_arquivo = os.path.join(pasta, arquivo)
+            df = pd.read_csv(caminho_arquivo)
+            dados.append(df)
+    if dados:
+        return pd.concat(dados, ignore_index=True)
+    else:
+        raise ValueError("Nenhum arquivo CSV encontrado na pasta.")
+
+# Carregar os dados
 print('Carregando dataset...')
-dataset = load_dataset("json", data_dir="data", split="train")
-data = dataset.to_pandas()
-
-data['identificador'] = data['identificador'].astype(str)
-data['anamnese'] = data['anamnese'].astype(str)
-data['laudo'] = data['laudo'].astype(str)
-
-docs = data[['identificador', 'anamnese', 'laudo']]
-loader = DataFrameLoader(docs, page_content_column="laudo")
-documents = loader.load()
-
-print('Inicializando QDrant')
 try:
-    client.get_collection(COLLECTION_NAME)
-    print(f"A coleção '{COLLECTION_NAME}' já existe. Reutilizando...")
-    collection_exists = True
+    dados = carregar_dados_csv(CSV_DIR)
+    print("Dataset carregado com sucesso.")
 except Exception as e:
-    print(f"A coleção '{COLLECTION_NAME}' não existe. Criando...")
-    collection_exists = False
+    print(f"Erro ao carregar dataset: {str(e)}")
+    dados = pd.DataFrame()  # DataFrame vazio em caso de erro
 
-if not collection_exists:
-    qdrant = Qdrant.from_documents(
-        documents=documents,
-        embedding=embed_model,
-        collection_name=COLLECTION_NAME,
-        url=f"http://{URL_QDRANT}:{PORT_QDRANT}",
-    )
-else:
-    qdrant = QdrantVectorStore.from_existing_collection(
-        embedding=embed_model,
-        collection_name=COLLECTION_NAME,
-        url=f"http://{URL_QDRANT}:{PORT_QDRANT}",
-    )
-
-def buscar_similaridade(query, k=9):
-    print("-- Buscando similaridade")
-    try:
-        results = qdrant.similarity_search(query, k=k)
-        source_knowledge = "\n".join([x.page_content for x in results])
-        return source_knowledge
-    except Exception as e:
-        error_message = f"Erro ao buscar similaridade: {str(e)}\n{traceback.format_exc()}"
-        print(error_message)
-        raise
-
+# Função para buscar o laudo pelo identificador
 def buscar_laudo_por_id(identificador):
-    paciente = data[data['identificador'] == identificador]
+    paciente = dados[dados['identificador'] == identificador]
     if not paciente.empty:
         return paciente.iloc[0]['laudo']
     else:
         return None
 
+# Função para recomendar um especialista com base no laudo
 def recomendar_especialista(laudo):
     prompt = f"Com base no seguinte laudo médico, recomende o tipo de especialista que o paciente deve procurar, justificando de maneira detalhada a motivação da escolha:\n\n{laudo}"
     response = chat.invoke(prompt)
     return response.content
 
+# Rota principal
 @app.route('/')
 def home():
     return render_template('index.html')
 
+# Rota para processar perguntas
 @app.route('/pergunta', methods=['POST'])
 def processar_pergunta():
     pergunta = request.form.get('pergunta', '').strip()
@@ -117,13 +85,10 @@ def processar_pergunta():
             else:
                 return jsonify({"erro": "Paciente não encontrado."}), 404
 
-        #Se não detectar ID, tenta buscar por similaridade
-        source_knowledge = buscar_similaridade(pergunta)
+        # Se não detectar ID, buscar informações gerais no dataset
         prompt = f"""Você é uma assistente virtual de uma clínica médica. Seu papel é orientar os pacientes a, com base no laudo de seus exames,
         a qual profissional procurar com base na base de dados disponível.
         
-        Contexto:
-        {source_knowledge}
         Pergunta: {pergunta}"""
         resposta = chat.invoke(prompt).content
         return jsonify({"resposta": markdown.markdown(resposta)})
@@ -132,6 +97,7 @@ def processar_pergunta():
         error_message = f"Erro ao processar a pergunta: {str(e)}\n{traceback.format_exc()}"
         print(error_message)
         return jsonify({"erro": error_message}), 500
-    
+
+# Executar o Flask
 if __name__ == '__main__':
     app.run(debug=True)
