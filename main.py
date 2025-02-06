@@ -50,7 +50,7 @@ def buscar_laudo_por_id(identificador):
         return None
 
 def recomendar_especialista(laudo):
-    prompt = f"Com base no seguinte laudo médico, recomende o tipo de especialista que o paciente deve procurar, justificando de maneira detalhada a motivação da escolha:\n\n{laudo}"
+    prompt = f"Com base no laudo médico fornecido, por favor, recomende o tipo de especialista mais adequado para o acompanhamento e tratamento do paciente. Justifique sua escolha de maneira detalhada, levando em consideração os possíveis diagnósticos indicados no laudo. Inclua também as razões para a indicação desse especialista em relação às necessidades específicas do paciente, como a complexidade do quadro e o tipo de abordagem terapêutica necessária \n\n Laudo:{laudo}"
     response = chat.invoke(prompt)
     return response.content
 
