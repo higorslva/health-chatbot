@@ -1,15 +1,12 @@
 import os
-import json
 import markdown
 import traceback
 import re  # expressões regulares
 
-from langchain.schema import SystemMessage, HumanMessage, AIMessage
 from langchain_openai import ChatOpenAI
 from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
 import pandas as pd
-import traceback
 
 # Carregar variáveis de ambiente
 load_dotenv()
@@ -20,11 +17,9 @@ CSV_DIR = "csv"  # Pasta contendo os arquivos CSV
 # Inicializar o Flask
 app = Flask(__name__)
 
-# Carregar modelo de chat
 print('Carregando modelo de chat...')
-chat = ChatOpenAI(model='gpt-4', temperature=0)  # Atualize para o modelo desejado
+chat = ChatOpenAI(model='gpt-4o-mini', temperature=0) 
 
-# Função para carregar todos os CSVs da pasta
 def carregar_dados_csv(pasta):
     dados = []
     for arquivo in os.listdir(pasta):
@@ -41,12 +36,12 @@ def carregar_dados_csv(pasta):
 print('Carregando dataset...')
 try:
     dados = carregar_dados_csv(CSV_DIR)
+    dados['identificador'] = dados['identificador'].astype(str)  # Converte as colunas para string
     print("Dataset carregado com sucesso.")
 except Exception as e:
     print(f"Erro ao carregar dataset: {str(e)}")
     dados = pd.DataFrame()  # DataFrame vazio em caso de erro
 
-# Função para buscar o laudo pelo identificador
 def buscar_laudo_por_id(identificador):
     paciente = dados[dados['identificador'] == identificador]
     if not paciente.empty:
@@ -54,18 +49,15 @@ def buscar_laudo_por_id(identificador):
     else:
         return None
 
-# Função para recomendar um especialista com base no laudo
 def recomendar_especialista(laudo):
     prompt = f"Com base no seguinte laudo médico, recomende o tipo de especialista que o paciente deve procurar, justificando de maneira detalhada a motivação da escolha:\n\n{laudo}"
     response = chat.invoke(prompt)
     return response.content
 
-# Rota principal
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# Rota para processar perguntas
 @app.route('/pergunta', methods=['POST'])
 def processar_pergunta():
     pergunta = request.form.get('pergunta', '').strip()
@@ -74,7 +66,6 @@ def processar_pergunta():
         return jsonify({"erro": "Pergunta é obrigatória"}), 400
 
     try:
-        # Extrair o ID do paciente da pergunta usando regex
         id_match = re.search(r'\b(\d+)\b', pergunta)
         if id_match:
             identificador = id_match.group(1)
@@ -83,9 +74,8 @@ def processar_pergunta():
                 recomendacao = recomendar_especialista(laudo)
                 return jsonify({"resposta": markdown.markdown(recomendacao)})
             else:
-                return jsonify({"erro": "Paciente não encontrado."}), 404
+                return jsonify({"erro": f"Paciente {identificador} não encontrado."}), 404
 
-        # Se não detectar ID, buscar informações gerais no dataset
         prompt = f"""Você é uma assistente virtual de uma clínica médica. Seu papel é orientar os pacientes a, com base no laudo de seus exames,
         a qual profissional procurar com base na base de dados disponível.
         
