@@ -20,6 +20,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            overflow: hidden;
         }
         .chat-container {
             width: 100vw;
@@ -27,7 +28,6 @@
             background: #1e1e1e;
             display: flex;
             flex-direction: column;
-            padding: 10px;
         }
         .chat-box {
             flex: 1;
@@ -35,6 +35,7 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
+            padding-bottom: 60px; /* Espaço para o input */
         }
         .message {
             padding: 12px;
@@ -57,6 +58,10 @@
             color: white;
         }
         .chat-input {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
             display: flex;
             padding: 12px;
             background: #252525;
