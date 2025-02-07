@@ -1,23 +1,29 @@
-body {
+html, body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
+    height: 100%;
     margin: 0;
     padding: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .chat-container {
-    width: 80%;
-    max-width: 600px;
-    margin: 50px auto;
+    width: 100%;
+    height: 100vh; /* Ocupa toda a altura da tela */
+    max-width: none;
+    margin: 0; /* Remove a margem */
     background-color: #fff;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
+    border-radius: 0; /* Remove os cantos arredondados */
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .chat-box {
+    flex: 1; /* Ocupa o espaço restante */
     padding: 20px;
-    height: 400px;
     overflow-y: auto;
     border-bottom: 1px solid #ddd;
     background-color: #f9f9f9;
@@ -46,14 +52,13 @@ body {
 }
 
 .chat-input input {
-    width: 80%;
+    flex: 1; /* Ajusta o tamanho automaticamente */
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 5px;
 }
 
 .chat-input button {
-    width: 15%;
     padding: 10px;
     margin-left: 10px;
     background-color: #007BFF;
