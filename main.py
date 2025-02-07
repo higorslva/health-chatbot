@@ -76,8 +76,7 @@ def processar_pergunta():
             else:
                 return jsonify({"erro": f"Paciente {identificador} não encontrado."}), 404
 
-        prompt = f"""Você é uma assistente virtual de uma clínica médica. Seu papel é orientar os pacientes a, com base no laudo de seus exames,
-        a qual profissional procurar com base na base de dados disponível.
+        prompt = f"""Você é uma assistente virtual de uma clínica médica. Sua função é fornecer orientações específicas aos pacientes sobre qual profissional de saúde devem consultar, com base nos resultados de seus exames. Utilize a base de dados disponível para oferecer recomendações precisas e relevantes, garantindo que as orientações estejam dentro do escopo médico e respeitem as diretrizes da clínica.
         
         Pergunta: {pergunta}"""
         resposta = chat.invoke(prompt).content
