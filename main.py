@@ -71,17 +71,6 @@ else:
         url=f"http://{URL_QDRANT}:{PORT_QDRANT}",
     )
 
-def buscar_similaridade(query, k=9):
-    print("-- Buscando similaridade")
-    try:
-        results = qdrant.similarity_search(query, k=k)
-        source_knowledge = "\n".join([x.page_content for x in results])
-        return source_knowledge
-    except Exception as e:
-        error_message = f"Erro ao buscar similaridade: {str(e)}\n{traceback.format_exc()}"
-        print(error_message)
-        raise
-
 def buscar_laudo_por_id(identificador):
     paciente = data[data['identificador'] == identificador]
     if not paciente.empty:
@@ -117,14 +106,11 @@ def processar_pergunta():
             else:
                 return jsonify({"erro": "Paciente não encontrado."}), 404
 
-        #Se não detectar ID, tenta buscar por similaridade
-        source_knowledge = buscar_similaridade(pergunta)
+        #Se não detectar ID, a conversa flui normalmente como um chatbot
         prompt = f"""Você é uma assistente virtual de uma clínica médica. Seu papel é orientar os pacientes a, com base no laudo de seus exames,
-        a qual profissional procurar com base na base de dados disponível.
-        
-        Contexto:
-        {source_knowledge}
+        a qual profissional procurar com base na base de dados disponível. Seja cordial.
         Pergunta: {pergunta}"""
+        print(prompt)
         resposta = chat.invoke(prompt).content
         return jsonify({"resposta": markdown.markdown(resposta)})
 
