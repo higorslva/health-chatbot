@@ -8,13 +8,8 @@ from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
 import pandas as pd
 
-# Carregar variáveis de ambiente
 load_dotenv()
-
-# Configurações
-CSV_DIR = "csv"  # Pasta contendo os arquivos CSV
-
-# Inicializar o Flask
+CSV_DIR = "csv" 
 app = Flask(__name__)
 
 print('Carregando modelo de chat...')
@@ -32,7 +27,6 @@ def carregar_dados_csv(pasta):
     else:
         raise ValueError("Nenhum arquivo CSV encontrado na pasta.")
 
-# Carregar os dados
 print('Carregando dataset...')
 try:
     dados = carregar_dados_csv(CSV_DIR)
@@ -42,6 +36,14 @@ except Exception as e:
     print(f"Erro ao carregar dataset: {str(e)}")
     dados = pd.DataFrame()  # DataFrame vazio em caso de erro
 
+print('Carregando banco de dados de médicos...')
+try:
+    medicos_df = pd.read_csv("csv/medicos/medicos.csv")
+    print("Banco de dados de médicos carregado com sucesso.")
+except Exception as e:
+    print(f"Erro ao carregar banco de dados de médicos: {str(e)}")
+    medicos_df = pd.DataFrame()  # DataFrame vazio em caso de erro
+
 def buscar_laudo_por_id(identificador):
     paciente = dados[dados['identificador'] == identificador]
     if not paciente.empty:
@@ -49,10 +51,32 @@ def buscar_laudo_por_id(identificador):
     else:
         return None
 
-def recomendar_especialista(laudo):
-    prompt = f"Com base no laudo médico fornecido, por favor, recomende o tipo de especialista mais adequado para o acompanhamento e tratamento do paciente. Justifique sua escolha de maneira detalhada, levando em consideração os possíveis diagnósticos indicados no laudo. Inclua também as razões para a indicação desse especialista em relação às necessidades específicas do paciente, como a complexidade do quadro e o tipo de abordagem terapêutica necessária \n\n Laudo:{laudo}"
+def resumir_laudo(laudo):
+    prompt = f"""
+    Resuma o seguinte laudo médico em até 3 frases, destacando os pontos mais relevantes para orientar o paciente sobre o próximo passo:
+    
+    Laudo: {laudo}
+    """
     response = chat.invoke(prompt)
-    return response.content
+    return response.content.strip()
+
+def recomendar_especialista(laudo):
+    prompt = f"""
+    Com base no laudo médico fornecido, por favor, recomende o tipo de especialista mais adequado para o acompanhamento e tratamento do paciente. 
+    Sua resposta deve conter APENAS o nome da especialidade recomendada, sem justificativas ou explicações adicionais.
+    Exemplos de respostas esperadas: "cardiologista", "neurologista", "ortopedista", etc.
+    
+    Laudo: {laudo}
+    """
+    response = chat.invoke(prompt)
+    return response.content.strip()
+
+def buscar_medicos_por_especialidade(especialidade):
+    medicos_filtrados = medicos_df[medicos_df['Especialidade'].str.contains(especialidade, case=False, na=False)]
+    if not medicos_filtrados.empty:
+        return medicos_filtrados[['Nome', 'Especialidade', 'Lotação', 'Endereço', 'Contato']].to_dict('records')
+    else:
+        return None
 
 @app.route('/')
 def home():
@@ -71,8 +95,22 @@ def processar_pergunta():
             identificador = id_match.group(1)
             laudo = buscar_laudo_por_id(identificador)
             if laudo:
-                recomendacao = recomendar_especialista(laudo)
-                return jsonify({"resposta": markdown.markdown(recomendacao)})
+
+                resumo = resumir_laudo(laudo)              
+                especialidade = recomendar_especialista(laudo)
+                medicos_recomendados = buscar_medicos_por_especialidade(especialidade)
+                
+                resposta = f"**Resumo do Laudo:**\n{resumo}\n\n"
+                resposta += f"**Recomendação:** O paciente deve consultar um **{especialidade}**.\n\n"
+                
+                if medicos_recomendados:
+                    resposta += "**Médicos Recomendados:**\n"
+                    for medico in medicos_recomendados:
+                        resposta += f"- **{medico['Nome']}** ({medico['Especialidade']}): {medico['Contato']}, {medico['Lotação']}, {medico['Endereço']}\n"
+                else:
+                    resposta += "Nenhum médico encontrado para a especialidade recomendada.\n"
+                
+                return jsonify({"resposta": markdown.markdown(resposta)})
             else:
                 return jsonify({"erro": f"Paciente {identificador} não encontrado."}), 404
 
@@ -87,6 +125,5 @@ def processar_pergunta():
         print(error_message)
         return jsonify({"erro": error_message}), 500
 
-# Executar o Flask
 if __name__ == '__main__':
     app.run(debug=True)

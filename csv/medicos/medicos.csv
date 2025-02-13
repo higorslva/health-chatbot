@@ -1,0 +1,54 @@
+Nome,Especialidade,Lotação,Endereço,Contato,Telefone
+Dr. João Silva,Cardiologista,Clínica Saúde Total,Rua das Flores, 123 - Centro,(11) 98765-4321
+Dra. Maria Oliveira,Neurologista,Clínica Bem Estar,Avenida Paulista, 456 - Bela Vista,(11) 91234-5678
+Dr. Carlos Souza,Ortopedista,Clínica OrtoCare,Rua dos Pinheiros, 789 - Pinheiros,(11) 92345-6789
+Dra. Ana Costa,Dermatologista,Clínica DermatoPlus,Avenida Brasil, 101 - Jardins,(11) 93456-7890
+Dr. Pedro Rocha,Ginecologista,Clínica Saúde da Mulher,Rua das Acácias, 202 - Moema,(11) 94567-8901
+Dra. Fernanda Lima,Psiquiatra,Clínica Mente Sã,Avenida Rebouças, 303 - Pinheiros,(11) 95678-9012
+Dr. Ricardo Almeida,Endocrinologista,Clínica EndoCare,Rua das Palmeiras, 404 - Higienópolis,(11) 96789-0123
+Dra. Juliana Santos,Pediatra,Clínica PediCare,Avenida Faria Lima, 505 - Itaim Bibi,(11) 97890-1234
+Dr. Marcelo Costa,Urologista,Clínica UroSaúde,Rua das Magnólias, 606 - Vila Olímpia,(11) 98901-2345
+Dra. Patricia Rocha,Cardiologista,Clínica Saúde Total,Rua das Orquídeas, 707 - Brooklin,(11) 99012-3456
+Dr. Roberto Lima,Neurologista,Clínica Bem Estar,Avenida Brigadeiro Faria Lima, 808 - Itaim Bibi,(11) 90123-4567
+Dra. Camila Alves,Ortopedista,Clínica OrtoCare,Rua das Margaridas, 909 - Moema,(11) 91234-5678
+Dr. Eduardo Santos,Dermatologista,Clínica DermatoPlus,Avenida Europa, 1010 - Jardim Europa,(11) 92345-6789
+Dra. Luciana Pereira,Ginecologista,Clínica Saúde da Mulher,Rua das Violetas, 1111 - Vila Madalena,(11) 93456-7890
+Dr. Gustavo Oliveira,Psiquiatra,Clínica Mente Sã,Avenida Cidade Jardim, 1212 - Jardins,(11) 94567-8901
+Dra. Renata Costa,Endocrinologista,Clínica EndoCare,Rua das Azaleias, 1313 - Higienópolis,(11) 95678-9012
+Dr. Felipe Rocha,Pediatra,Clínica PediCare,Avenida São Gabriel, 1414 - Itaim Bibi,(11) 96789-0123
+Dra. Vanessa Lima,Urologista,Clínica UroSaúde,Rua das Camélias, 1515 - Vila Olímpia,(11) 97890-1234
+Dr. André Almeida,Cardiologista,Clínica Saúde Total,Avenida Ibirapuera, 1616 - Moema,(11) 98901-2345
+Dra. Simone Santos,Neurologista,Clínica Bem Estar,Rua das Hortênsias, 1717 - Pinheiros,(11) 99012-3456
+Dr. Bruno Costa,Ortopedista,Clínica OrtoCare,Avenida Juscelino Kubitschek, 1818 - Itaim Bibi,(11) 90123-4567
+Dra. Larissa Oliveira,Dermatologista,Clínica DermatoPlus,Rua das Tulipas, 1919 - Jardins,(11) 91234-5678
+Dr. Rafael Pereira,Ginecologista,Clínica Saúde da Mulher,Avenida Nove de Julho, 2020 - Jardim Paulista,(11) 92345-6789
+Dra. Mariana Souza,Psiquiatra,Clínica Mente Sã,Rua das Begônias, 2121 - Vila Madalena,(11) 93456-7890
+Dr. Leonardo Alves,Endocrinologista,Clínica EndoCare,Avenida República do Líbano, 2222 - Ibirapuera,(11) 94567-8901
+Dra. Carolina Lima,Pediatra,Clínica PediCare,Rua das Rosas, 2323 - Moema,(11) 95678-9012
+Dr. Daniel Costa,Urologista,Clínica UroSaúde,Avenida Hélio Pellegrino, 2424 - Vila Olímpia,(11) 96789-0123
+Dra. Beatriz Rocha,Cardiologista,Clínica Saúde Total,Rua das Margaridas, 2525 - Brooklin,(11) 97890-1234
+Dr. Thiago Almeida,Neurologista,Clínica Bem Estar,Avenida Santo Amaro, 2626 - Santo Amaro,(11) 98901-2345
+Dra. Amanda Santos,Ortopedista,Clínica OrtoCare,Rua das Violetas, 2727 - Pinheiros,(11) 99012-3456
+Dr. Lucas Oliveira,Dermatologista,Clínica DermatoPlus,Avenida Moema, 2828 - Moema,(11) 90123-4567
+Dra. Gabriela Costa,Ginecologista,Clínica Saúde da Mulher,Rua das Orquídeas, 2929 - Jardins,(11) 91234-5678
+Dr. Rodrigo Pereira,Psiquiatra,Clínica Mente Sã,Avenida Brigadeiro Luís Antônio, 3030 - Bela Vista,(11) 92345-6789
+Dra. Isabela Alves,Endocrinologista,Clínica EndoCare,Rua das Acácias, 3131 - Higienópolis,(11) 93456-7890
+Dr. Vinicius Lima,Pediatra,Clínica PediCare,Avenida Paulista, 3232 - Cerqueira César,(11) 94567-8901
+Dra. Laura Rocha,Urologista,Clínica UroSaúde,Rua das Camélias, 3333 - Vila Olímpia,(11) 95678-9012
+Dr. Gabriel Almeida,Cardiologista,Clínica Saúde Total,Avenida Faria Lima, 3434 - Itaim Bibi,(11) 96789-0123
+Dra. Sofia Santos,Neurologista,Clínica Bem Estar,Rua das Hortênsias, 3535 - Pinheiros,(11) 97890-1234
+Dr. Enzo Costa,Ortopedista,Clínica OrtoCare,Avenida Juscelino Kubitschek, 3636 - Itaim Bibi,(11) 98901-2345
+Dra. Valentina Oliveira,Dermatologista,Clínica DermatoPlus,Rua das Tulipas, 3737 - Jardins,(11) 99012-3456
+Dr. Arthur Pereira,Ginecologista,Clínica Saúde da Mulher,Avenida Nove de Julho, 3838 - Jardim Paulista,(11) 90123-4567
+Dra. Heloísa Souza,Psiquiatra,Clínica Mente Sã,Rua das Begônias, 3939 - Vila Madalena,(11) 91234-5678
+Dr. Bernardo Alves,Endocrinologista,Clínica EndoCare,Avenida República do Líbano, 4040 - Ibirapuera,(11) 92345-6789
+Dra. Luiza Lima,Pediatra,Clínica PediCare,Rua das Rosas, 4141 - Moema,(11) 93456-7890
+Dr. Davi Costa,Urologista,Clínica UroSaúde,Avenida Hélio Pellegrino, 4242 - Vila Olímpia,(11) 94567-8901
+Dra. Manuela Rocha,Cardiologista,Clínica Saúde Total,Rua das Margaridas, 4343 - Brooklin,(11) 95678-9012
+Dr. Lorenzo Almeida,Neurologista,Clínica Bem Estar,Avenida Santo Amaro, 4444 - Santo Amaro,(11) 96789-0123
+Dra. Alice Santos,Ortopedista,Clínica OrtoCare,Rua das Violetas, 4545 - Pinheiros,(11) 97890-1234
+Dr. Heitor Oliveira,Dermatologista,Clínica DermatoPlus,Avenida Moema, 4646 - Moema,(11) 98901-2345
+Dra. Maria Eduarda Costa,Ginecologista,Clínica Saúde da Mulher,Rua das Orquídeas, 4747 - Jardins,(11) 99012-3456
+Dr. Miguel Pereira,Psiquiatra,Clínica Mente Sã,Avenida Brigadeiro Luís Antônio, 4848 - Bela Vista,(11) 90123-4567
+Dra. Sophia Alves,Endocrinologista,Clínica EndoCare,Rua das Acácias, 4949 - Higienópolis,(11) 91234-5678
+Dr. Rafael Lima,Pediatra,Clínica PediCare,Avenida Paulista, 5050 - Cerqueira César,(11) 92345-6789
