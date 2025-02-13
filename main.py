@@ -60,13 +60,13 @@ def resumir_laudo(laudo):
     response = chat.invoke(prompt)
     return response.content.strip()
 
-def recomendar_especialista(laudo):
+def recomendar_especialista(texto):
     prompt = f"""
-    Com base no laudo médico fornecido, por favor, recomende o tipo de especialista mais adequado para o acompanhamento e tratamento do paciente. 
+    Com base na seguinte descrição de sintomas ou laudo médico, por favor, recomende o tipo de especialista mais adequado para o acompanhamento e tratamento do paciente. 
     Sua resposta deve conter APENAS o nome da especialidade recomendada, sem justificativas ou explicações adicionais.
     Exemplos de respostas esperadas: "cardiologista", "neurologista", "ortopedista", etc.
     
-    Laudo: {laudo}
+    Descrição: {texto}
     """
     response = chat.invoke(prompt)
     return response.content.strip()
@@ -91,13 +91,14 @@ def processar_pergunta():
 
     try:
         id_match = re.search(r'\b(\d+)\b', pergunta)
-        if id_match:
+        if id_match:  # Caso a pergunta contenha um ID
             identificador = id_match.group(1)
             laudo = buscar_laudo_por_id(identificador)
             if laudo:
 
                 resumo = resumir_laudo(laudo)              
                 especialidade = recomendar_especialista(laudo)
+                
                 medicos_recomendados = buscar_medicos_por_especialidade(especialidade)
                 
                 resposta = f"**Resumo do Laudo:**\n{resumo}\n\n"
@@ -113,12 +114,19 @@ def processar_pergunta():
                 return jsonify({"resposta": markdown.markdown(resposta)})
             else:
                 return jsonify({"erro": f"Paciente {identificador} não encontrado."}), 404
+        else: # Caso a pergunta não contenha um ID, ele analisará os sintomas
+            
+            especialidade = recomendar_especialista(pergunta)
+            medicos_recomendados = buscar_medicos_por_especialidade(especialidade)
+            resposta = f"**Recomendação:** Com base nos sintomas descritos, você deve consultar um **{especialidade}**.\n\n"
+            if medicos_recomendados:
+                resposta += "**Médicos Recomendados:**\n"
+                for medico in medicos_recomendados:
+                    resposta += f"- **{medico['Nome']}** ({medico['Especialidade']}): {medico['Contato']}, {medico['Endereço']}\n"
+            else:
+                resposta += "Nenhum médico encontrado para a especialidade recomendada.\n"
 
-        prompt = f"""Você é uma assistente virtual de uma clínica médica. Sua função é fornecer orientações específicas aos pacientes sobre qual profissional de saúde devem consultar, com base nos resultados de seus exames. Utilize a base de dados disponível para oferecer recomendações precisas e relevantes, garantindo que as orientações estejam dentro do escopo médico e respeitem as diretrizes da clínica.
-        
-        Pergunta: {pergunta}"""
-        resposta = chat.invoke(prompt).content
-        return jsonify({"resposta": markdown.markdown(resposta)})
+            return jsonify({"resposta": markdown.markdown(resposta)})
 
     except Exception as e:
         error_message = f"Erro ao processar a pergunta: {str(e)}\n{traceback.format_exc()}"
