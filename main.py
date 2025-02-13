@@ -74,7 +74,7 @@ def recomendar_especialista(laudo):
 def buscar_medicos_por_especialidade(especialidade):
     medicos_filtrados = medicos_df[medicos_df['Especialidade'].str.contains(especialidade, case=False, na=False)]
     if not medicos_filtrados.empty:
-        return medicos_filtrados[['Nome', 'Especialidade', 'Lotação', 'Endereço', 'Contato']].to_dict('records')
+        return medicos_filtrados[['Nome', 'Especialidade', 'Lotação', 'Endereço', 'Contato', 'Telefone']].to_dict('records')
     else:
         return None
 
@@ -106,7 +106,7 @@ def processar_pergunta():
                 if medicos_recomendados:
                     resposta += "**Médicos Recomendados:**\n"
                     for medico in medicos_recomendados:
-                        resposta += f"- **{medico['Nome']}** ({medico['Especialidade']}): {medico['Contato']}, {medico['Lotação']}, {medico['Endereço']}\n"
+                        resposta += f"- **{medico['Nome']}** ({medico['Especialidade']}): {medico['Contato']}, {medico['Lotação']}, {medico['Endereço']}, {medico['Telefone']}\n"
                 else:
                     resposta += "Nenhum médico encontrado para a especialidade recomendada.\n"
                 
