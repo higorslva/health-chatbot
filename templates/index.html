@@ -1,133 +1,21 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assistente Virtual</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', sans-serif;
-        }
-        body {
-            background-color: #121212;
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
-        }
-        .chat-container {
-            border-radius: 1em;
-            width: 85%;
-            height: 100%;
-            background: #1e1e1e;
-            display: flex;
-            flex-direction: column;
-        }
-        .chat-box {
-            flex: 1;
-            padding: 16px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            padding-bottom: 60px; /* Espaço para o input */
-        }
-        .message {
-            padding: 12px;
-            border-radius: 8px;
-            margin: 8px 0;
-            max-width: 75%;
-            word-wrap: break-word;
-            display: inline-block;
-        }
-        .user-message {
-            background: #007AFF;
-            align-self: flex-end;
-            color: white;
-            text-align: left;
-        }
-        .bot-message {
-            background: #333;
-            align-self: flex-start;
-            text-align: left;
-            color: white;
-        }
-        .chat-input {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            display: flex;
-            padding: 12px;
-            background: #252525;
-            border-top: 1px solid #333;
-        }
-        .chat-input input {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            background: #333;
-            color: white;
-            border-radius: 6px;
-            outline: none;
-        }
-        .chat-input button {
-            margin-left: 10px;
-            padding: 10px 16px;
-            background: #007AFF;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .chat-input button:hover {
-            background: #005BB5;
-        }
-    </style>
-</head>
-<body>
-    <div class="chat-container">
-        <div class="chat-box" id="chat-box"></div>
-        <div class="chat-input">
-            <input type="text" id="pergunta" placeholder="Digite sua mensagem...">
-            <button id="enviar">➤</button>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Assistente Virtual</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    </head>
+    <body>
+        <div class="chat-container">
+            <div class="chat-box" id="chat-box"></div>
+            <div class="chat-input">
+                <input type="text" id="pergunta" placeholder="Digite sua mensagem...">
+                <button id="enviar">➤</button>
+            </div>
         </div>
-    </div>
-    <script>
-        $(document).ready(function () {
-            $('#enviar').on('click', function () {
-                var pergunta = $('#pergunta').val().trim();
-                if (pergunta === '') return;
-                
-                $('#chat-box').append('<div class="message user-message">' + pergunta + '</div>');
-                $('#pergunta').val('');
-                $('#chat-box').scrollTop($('#chat-box')[0].scrollHeight);
-                
-                $.ajax({
-                    type: 'POST',
-                    url: '/pergunta',
-                    data: { pergunta: pergunta },
-                    success: function (response) {
-                        $('#chat-box').append('<div class="message bot-message">' + response.resposta + '</div>');
-                        $('#chat-box').scrollTop($('#chat-box')[0].scrollHeight);
-                    },
-                    error: function () {
-                        $('#chat-box').append('<div class="message bot-message">Erro ao processar.</div>');
-                    }
-                });
-            });
-            
-            $('#pergunta').on('keypress', function (e) {
-                if (e.which === 13) $('#enviar').click();
-            });
-        });
-    </script>
-</body>
+        <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+    </body>
 </html>
