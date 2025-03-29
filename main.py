@@ -7,10 +7,12 @@ from langchain_openai import ChatOpenAI
 from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
 import pandas as pd
+from flask_cors import CORS
 
 load_dotenv()
 CSV_DIR = "csv" 
 app = Flask(__name__)
+CORS(app)  # Habilita CORS para todas as rotas
 
 print('Carregando modelo de chat...')
 chat = ChatOpenAI(model='gpt-4o-mini', temperature=0) 
@@ -84,8 +86,12 @@ def home():
 
 @app.route('/pergunta', methods=['POST'])
 def processar_pergunta():
-    pergunta = request.form.get('pergunta', '').strip()
-
+    # Aceita tanto JSON quanto form-data
+    if request.is_json:
+        pergunta = request.json.get('pergunta', '').strip()
+    else:
+        pergunta = request.form.get('pergunta', '').strip()
+    
     if not pergunta:
         return jsonify({"erro": "Pergunta é obrigatória"}), 400
 
@@ -111,7 +117,8 @@ def processar_pergunta():
                 else:
                     resposta += "Nenhum médico encontrado para a especialidade recomendada.\n"
                 
-                return jsonify({"resposta": markdown.markdown(resposta)})
+                return jsonify({"resposta": resposta})  # Retorna Markdown puro
+                #return jsonify({"resposta": markdown.markdown(resposta)})
             else:
                 return jsonify({"erro": f"Paciente {identificador} não encontrado."}), 404
         else: # Caso a pergunta não contenha um ID, ele analisará os sintomas
